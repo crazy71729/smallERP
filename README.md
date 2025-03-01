@@ -64,7 +64,8 @@ Body：
 {
   "name": "Test Product",
   "price": 10.99,
-  "description": "A test product description"
+  "description": "A test product description",
+  "category":"Electronics"
 }
 
 獲得指定商品資訊
@@ -87,3 +88,41 @@ Body:{
 刪除產品
 Method: DELETE
 URL: http://localhost:8000/products/
+
+
+##其他功能
+
+批量加入
+Method: POST
+URL: http://localhost:8000/products/bulk/
+Body:[
+    {
+        "name": "Phone", 
+        "price": 499.99, 
+        "category": "Electronics"
+    }, 
+    {
+        "name": "Shirt", 
+        "price": 29.99, 
+        "category": "Clothing"
+    }
+]
+
+由種類查詢
+Method: GET
+URL: http://localhost:8000/products/by_category/?category=Electronics
+
+由名稱查詢
+Method: GET
+URL: http://localhost:8000/products/by_category/?name=pho
+
+由價格查詢
+Method: GET
+URL: http://localhost:8000/products/by_category/?min_price=100&max_price=500
+
+### 參考文獻
+FastAPI：https://minglunwu.com/notes/2021/fast_api_note_1.html/
+
+pydantic:https://editor.leonh.space/2023/pydantic/
+
+pytest:https://ithelp.ithome.com.tw/m/articles/10336826

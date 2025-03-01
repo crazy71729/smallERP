@@ -10,6 +10,7 @@ class ProductBase(BaseModel):
     name: str = Field(..., min_length=1, description="產品名稱")
     price: float = Field(..., gt=0, description="產品價格")
     description: Optional[str] = None
+    category: Optional[str] = Field(None, description="產品分類")  
 
 class ProductCreate(ProductBase):
     pass
@@ -60,3 +61,57 @@ async def delete_product(product_id: str):
         raise HTTPException(status_code=404, detail="產品不存在")
     del products_db[product_id]
     return None
+
+# 批量創建產品
+@app.post("/products/bulk/", response_model=List[Product], status_code=201)
+async def create_products_bulk(products: List[ProductCreate]):
+    """批量創建產品"""
+    created_products = []
+    for product in products:
+        product_id = str(uuid.uuid4())
+        new_product = Product(id=product_id, **product.dict())
+        products_db[product_id] = new_product.dict()
+        created_products.append(new_product)
+    return created_products
+
+# 按分類列出產品
+@app.get("/products/by_category/", response_model=List[Product])
+async def list_products_by_category(
+    category: str = Query(..., description="產品分類"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100)
+):
+    """按分類列出產品"""
+    products = [p for p in products_db.values() if p.get("category") == category]
+    if not products:
+        raise HTTPException(status_code=404, detail="該分類下無產品")
+    return products[skip:skip + limit]
+
+@app.get("/products/by_name/", response_model=List[Product])
+async def list_products_by_name(
+    name: str = Query(..., description="產品名稱（支援部分匹配）"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100)
+):
+    """按名稱列出產品"""
+    products = [p for p in products_db.values() if name.lower() in p.get("name", "").lower()]
+    if not products:
+        raise HTTPException(status_code=404, detail="該名稱下無產品")
+    return products[skip:skip + limit]
+
+@app.get("/products/by_price/", response_model=List[Product])
+async def list_products_by_price(
+    min_price: float = Query(..., ge=0, description="最低價格"),
+    max_price: Optional[float] = Query(None, ge=0, description="最高價格"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100)
+):
+    """按價格範圍列出產品"""
+    products = [p for p in products_db.values() if p.get("price", 0) >= min_price]
+    if max_price is not None:
+        products = [p for p in products if p.get("price", 0) <= max_price]
+    if not products:
+        raise HTTPException(status_code=404, detail="該價格範圍下無產品")
+    return products[skip:skip + limit]
+
+

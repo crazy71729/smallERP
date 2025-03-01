@@ -85,3 +85,84 @@ def test_delete_product():
     # 確認已刪除
     response = client.get(f"/products/{product_id}")
     assert response.status_code == 404
+
+# 新增測試：批量創建產品
+def test_create_products_bulk():
+    """測試批量創建產品"""
+    payload = [
+        {"name": "Bulk Product 1", "price": 20.99, "category": "Electronics"},
+        {"name": "Bulk Product 2", "price": 30.99, "category": "Clothing"}
+    ]
+    response = client.post("/products/bulk/", json=payload)
+    assert response.status_code == 201
+    data = response.json()
+    assert len(data) == 2
+    assert data[0]["name"] == "Bulk Product 1"
+    assert data[1]["name"] == "Bulk Product 2"
+    assert all("id" in item for item in data)
+
+# 新增測試：按分類列出產品
+def test_list_products_by_category():
+    """測試按分類列出產品"""
+    # 創建帶分類的產品
+    client.post("/products/", json={"name": "Electronics Product", "price": 50.99, "category": "Electronics"})
+    client.post("/products/", json={"name": "Clothing Product", "price": 20.99, "category": "Clothing"})
+    
+    # 測試按分類過濾
+    response = client.get("/products/by_category/?category=Electronics")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["category"] == "Electronics"
+    
+    # 測試無匹配分類
+    response = client.get("/products/by_category/?category=Books")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "該分類下無產品"
+
+# 新增測試：按名稱列出產品
+def test_list_products_by_name():
+    """測試按名稱列出產品"""
+    # 創建多個產品
+    client.post("/products/", json={"name": "Laptop", "price": 999.99})
+    client.post("/products/", json={"name": "Desktop", "price": 799.99})
+    client.post("/products/", json={"name": "Lamp", "price": 19.99})
+    
+    # 測試按名稱部分匹配
+    response = client.get("/products/by_name/?name=lap")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["name"] == "Laptop"
+    
+    # 測試無匹配名稱
+    response = client.get("/products/by_name/?name=xyz")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "該名稱下無產品"
+
+# 新增測試：按價格範圍列出產品
+def test_list_products_by_price():
+    """測試按價格範圍列出產品"""
+    # 創建多個產品
+    client.post("/products/", json={"name": "Cheap Item", "price": 10.99})
+    client.post("/products/", json={"name": "Mid Item", "price": 50.99})
+    client.post("/products/", json={"name": "Expensive Item", "price": 100.99})
+    
+    # 測試價格範圍
+    response = client.get("/products/by_price/?min_price=20&max_price=80")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["name"] == "Mid Item"
+    
+    # 測試無匹配價格範圍
+    response = client.get("/products/by_price/?min_price=200")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "該價格範圍下無產品"
+    
+    # 測試僅 min_price
+    response = client.get("/products/by_price/?min_price=50")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2  # 應該包含 Mid Item 和 Expensive Item
+    assert all(p["price"] >= 50 for p in data)
