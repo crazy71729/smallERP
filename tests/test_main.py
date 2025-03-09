@@ -31,11 +31,11 @@ def test_create_product_invalid_data():
     """測試無效數據創建"""
     # 價格為負數
     response = client.post("/products/", json={"name": "Test", "price": -1})
-    assert response.status_code == 422
+    assert response.status_code == 422 #負價格：price=-1 不符合要求（gt=0），返回 Unprocessable Entity
     
     # 名稱為空
     response = client.post("/products/", json={"name": "", "price": 10})
-    assert response.status_code == 422
+    assert response.status_code == 422 #不符合min_length=1
 
 def test_get_product():
     """測試獲取產品"""
@@ -48,13 +48,13 @@ def test_get_product():
 def test_get_product_not_found():
     """測試獲取不存在的產品"""
     response = client.get("/products/nonexistent-id")
-    assert response.status_code == 404
+    assert response.status_code == 404 #not found
 
 def test_list_products_with_pagination():
     """測試產品列表與分頁"""
     # 創建多個產品
     for i in range(3):
-        client.post("/products/", json={"name": f"Product {i}", "price": 10 + i})
+        client.post("/products/", json={"name": f"Product {i}", "price": 10 + i}) #送入三個2得到第2個
     
     # 測試分頁
     response = client.get("/products/?skip=1&limit=2")

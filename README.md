@@ -71,6 +71,7 @@ Body：
 獲得指定商品資訊
 Method: GET
 URL: http://localhost:8000/products/{product_id}（將 {product_id} 替換為返回的 id）
+例：http://localhost:8000/products/7d7d438c-bb62-4efb-a017-48877161e3f8
 
 獲得所有商品資訊
 Method: GET
@@ -88,6 +89,7 @@ Body:{
 刪除產品
 Method: DELETE
 URL: http://localhost:8000/products/
+例：http://localhost:8000/products/7d7d438c-bb62-4efb-a017-48877161e3f8
 
 
 ##其他功能
@@ -114,16 +116,16 @@ URL: http://localhost:8000/products/by_category/?category=Electronics
 
 由名稱查詢
 Method: GET
-URL: http://localhost:8000/products/by_category/?name=pho
+URL: http://localhost:8000/products/by_name/?name=pho
 
 由價格查詢
 Method: GET
-URL: http://localhost:8000/products/by_category/?min_price=100&max_price=500
+URL: http://localhost:8000/products/by_price/?min_price=100&max_price=500
+
 
 ### 參考文獻
 FastAPI：https://minglunwu.com/notes/2021/fast_api_note_1.html/
 
 pydantic:https://editor.leonh.space/2023/pydantic/
-
 
 pytest:https://ithelp.ithome.com.tw/m/articles/10336826
