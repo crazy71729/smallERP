@@ -74,6 +74,24 @@ def test_update_product():
     assert response.status_code == 200
     assert response.json()["name"] == "Updated"
 
+def test_update_product_invalid():
+    """測試更新錯誤產品編號"""
+    # 先創建產品
+    product_id = test_create_product()
+    
+    response = client.put(
+        f"/products/{product_id}",
+        json={"name": "Updated", "price": 15}
+    )
+    
+    # 使用不存在的產品編號
+    test_id = "66666666666666"
+    response = client.put(
+        f"/products/{test_id}",
+        json={"name": "test Updated", "price": 33}
+    )
+    assert response.status_code == 404
+
 def test_delete_product():
     """測試刪除產品"""
     # 先創建產品
@@ -86,7 +104,7 @@ def test_delete_product():
     response = client.get(f"/products/{product_id}")
     assert response.status_code == 404
 
-# 新增測試：批量創建產品
+# 批量創建產品
 def test_create_products_bulk():
     """測試批量創建產品"""
     payload = [
@@ -101,7 +119,18 @@ def test_create_products_bulk():
     assert data[1]["name"] == "Bulk Product 2"
     assert all("id" in item for item in data)
 
-# 新增測試：按分類列出產品
+# 批量創建產品錯誤內容
+def test_create_products_bulk_invalid():
+    """測試批量創建錯誤產品數據"""
+    payload = [
+        {"name": "Bulk Product 1", "price": -1.00, "category": "Electronics"},
+        {"name": "", "price": 30.99, "category": "Clothing"}
+    ]
+    response = client.post("/products/bulk/", json=payload)
+    assert response.status_code == 422
+
+
+# 按分類列出產品
 def test_list_products_by_category():
     """測試按分類列出產品"""
     # 創建帶分類的產品
@@ -120,7 +149,7 @@ def test_list_products_by_category():
     assert response.status_code == 404
     assert response.json()["detail"] == "該分類下無產品"
 
-# 新增測試：按名稱列出產品
+# 按名稱列出產品
 def test_list_products_by_name():
     """測試按名稱列出產品"""
     # 創建多個產品
@@ -140,7 +169,7 @@ def test_list_products_by_name():
     assert response.status_code == 404
     assert response.json()["detail"] == "該名稱下無產品"
 
-# 新增測試：按價格範圍列出產品
+# 按價格範圍列出產品
 def test_list_products_by_price():
     """測試按價格範圍列出產品"""
     # 創建多個產品
